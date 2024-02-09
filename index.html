@@ -448,7 +448,7 @@
 				</section>
 				<!-- Slide 16 -->
 				<section>
-					<p style="font-size: 150%;">🐝 <a href="#/10">Quiz Time...</a><br></p>
+					<p style="font-size: 150%;">🐝 <a href="#/15">Quiz Time...</a><br></p>
 					<p class="fragment fade-in">
 						What does the Dice Loss mean?
 					</p>
@@ -502,6 +502,81 @@
 								})
 						</script></code></pre>
 					</section>
+					<section>
+						<p data-id="code-title">
+							A simple PyTorch validation step with <a href="#/16/1"><code>wandb.log()</code></a>
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1-4|8-16|18-31|33-44|"><script type="text/template">
+							# For the validation step, we need to set the model to
+							# evaluation mode and disable gradient computations.
+							model.eval()
+							with torch.no_grad():
+								
+								for val_data in val_loader:
+									
+									# Perform inference and compute
+									# the Dice metric for each class
+									val_inputs, val_labels = (
+										val_data["image"].to(device),
+										val_data["label"].to(device),
+									)
+									val_outputs = inference(val_inputs)
+									dice_metric(y_pred=val_outputs, y=val_labels)
+									dice_metric_batch(y_pred=val_outputs, y=val_labels)
+									
+								# Save model checkpoint
+								checkpoint_file = os.path.join(
+									checkpoint_dir, f"best_metric_model_{epoch}.pth"
+								)
+								torch.save(model.state_dict(), checkpoint_file)
+								
+								# Log model checkpoint as W&B artifacts
+								artifact = wandb.Artifact(
+									f'{wandb.run.id}-checkpoint', type='model'
+								)
+								artifact.add_file(checkpoint_file)
+								wandb.log_artifact(
+									artifact, aliases=[f"epoch_{epoch}", "latest"]
+								)
+								
+								# Aggregate the metrics and log them to Weights & Biases
+								metric = dice_metric.aggregate().item()
+								metric_batch = dice_metric_batch.aggregate()
+								dice_metric.reset()
+								dice_metric_batch.reset()
+								wandb.log({
+									"epoch/epoch": epoch,
+									"epoch/mean_loss": epoch_loss,
+									"epoch/dice_tumor_core": metric_batch[0].item(),
+									"epoch/dice_whole_tumor": metric_batch[1].item(),
+									"epoch/dice_enhancing_tumor": metric_batch[2].item(),
+								})
+						</script></code></pre>
+					</section>
+					<section>
+						<p data-id="code-title">
+							Put together the <a href="#/16/3">training loop</a>
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|2-3|5-7|"><script type="text/template">
+							for epoch in range(epochs):
+								model.train()
+								execute training step....
+
+								if epoch % val_interval == 0:
+									model.eval()
+									execute validation step....
+						</script></code></pre>
+					</section>
+					<section>
+						<iframe src="https://wandb.ai/geekyrakshit/brain-tumor-segmentation/reports/Baseline-Training--Vmlldzo2NzgwNzEw" style="border:none;height:700px;width:100%"></iframe>
+					</section>
+				</section>
+				<!-- Slide 18 -->
+				<section>
+					<p style="font-size: 150%;">🐝 <a href="#/17">Quiz Time...</a><br></p>
+					<p class="fragment fade-in">
+						Why do we need to scale the loss during mixed precision training step?
+					</p>
 				</section>
 			</div>
 		</div>
