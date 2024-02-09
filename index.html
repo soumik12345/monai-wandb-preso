@@ -360,6 +360,149 @@
 						<iframe src="https://wandb.ai/geekyrakshit/brain-tumor-segmentation/reports/Brain-Tumor-Segmentation-Data--Vmlldzo2Nzc5OTQz" style="border:none;height:700px;width:100%"></iframe>
 					</section>
 				</section>
+				<!-- Slide 14 -->
+				<section>
+					<section>
+						<p style="font-size: 150%;"><a href="https://medicaldecathlon.com/">
+							Training a Baseline Segmentation Model
+						</a></p>
+					</section>
+					<section data-markdown><textarea data-template>
+						We will train a simple [SegResNet](#/13/1) model based on the paper
+						[3D MRI brain tumor segmentation using autoencoder regularization](https://arxiv.org/abs/1810.11654).
+					</textarea></section>
+				</section>
+				<!-- Slide 15 -->
+				<section>
+					<section>Step 1: Define the Model</section>
+					<section data-markdown><textarea data-template>
+						We use the [`monai.networks.nets.SegResNet`](https://docs.monai.io/en/stable/networks.html#segresnet)
+						which implements the SegResNet architecture out-of-the-box.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Defining the Model</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers><script type="text/template">
+							from monai.networks.nets import SegResNet
+
+							# Define the model
+							model = SegResNet(
+								blocks_down=config.blocks_down,
+								blocks_up=config.blocks_up,
+								init_filters=config.init_filters,
+								in_channels=4,
+								out_channels=3,
+								dropout_prob=config.dropout_prob,
+							).to(device)
+						</script></code></pre>
+					</section>
+					<section data-markdown><textarea data-template>
+						We use the [`monai.losses.DiceLoss`](https://docs.monai.io/en/stable/losses.html#diceloss)
+						as our loss function. It computes the average Dice loss between two tensors and works for both
+						multi-classes and multi-label tasks.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Defining the Loss Function</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers><script type="text/template">
+							from monai.losses import DiceLoss
+
+							# Define the loss function
+							loss_function = DiceLoss(
+								smooth_nr=config.smooth_nr,
+								smooth_dr=config.smooth_dr,
+								squared_pred=True,
+								to_onehot_y=False,
+								sigmoid=True,
+							)
+						</script></code></pre>
+					</section>
+					<section data-markdown><textarea data-template>
+						We use the [`monai.metrics.DiceMetric`](https://docs.monai.io/en/stable/metrics.html#monai.metrics.DiceMetric)
+						that computes the average Dice score between two tensors and supports both multi-classes and multi-labels tasks.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Defining the Metric for Validation</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers><script type="text/template">
+							from monai.metrics import DiceMetric
+
+							# Define the metric
+							dice_metric = DiceMetric(
+								include_background=True, reduction="mean"
+							)
+						</script></code></pre>
+					</section>
+					<section data-markdown><textarea data-template>
+						Before we start training, We invoke the [wandb.watch()](https://docs.wandb.ai/ref/python/watch)
+						function on our model and loss function in order to hook into the Pytorch model and automatically
+						collect and log gradients and the topology.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Logging Model Gradients and Topology</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers><script type="text/template">
+							import wandb
+
+							# Hook into the torch model to collect
+							# gradients and the topology
+							wandb.watch(model, criterion=loss_function)
+						</script></code></pre>
+					</section>
+				</section>
+				<!-- Slide 16 -->
+				<section>
+					<p style="font-size: 150%;">🐝 <a href="#/10">Quiz Time...</a><br></p>
+					<p class="fragment fade-in">
+						What does the Dice Loss mean?
+					</p>
+				</section>
+				<!-- Slide 17 -->
+				<section>
+					<section>Step 2: A PyTorch Training and Validation Loop</section>
+					<section>
+						<p data-id="code-title">
+							A simple PyTorch training step with <a href="#/16/1"><code>wandb.log()</code></a>
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|3-4|6-12|14-18|20-25|27-32|34-39|"><script type="text/template">
+							scaler = torch.cuda.amp.GradScaler()
+							
+							# Loop over the data batches from the train dataloader
+							for batch_data in train_loader:
+								
+								# Unpack the inputs and ground true labels
+								# from the data batch
+								global_step += 1
+								inputs, labels = (
+									batch_data["image"].to(device),
+									batch_data["label"].to(device)
+								)
+								
+								# for every training step, we need to explicitly
+								# set the gradients to zero before starting
+								# backwar pass because PyTorch accumulates the
+								# gradients on subsequent backward passes.
+								optimizer.zero_grad()
+								
+								# for mixed-precision training, we wrap the
+								# forward passes of the, including the
+								# loss computations with autocast.
+								with torch.cuda.amp.autocast():
+									outputs = model(inputs)
+									loss = loss_function(outputs, labels)
+								
+								# For mixed-precision training, gradient scaling is
+								# used to prevent underflow of gradients by
+								# multiplying the network’s loss by a scale factor.
+								scaler.scale(loss).backward()
+								scaler.step(optimizer)
+								scaler.update()
+								
+								# Adding Weights & Biases logging to a
+								# PyTorch training step
+								wandb.log({
+									"batch/batch_step": global_step,
+									"batch/loss": loss.item(),
+								})
+						</script></code></pre>
+					</section>
+				</section>
 			</div>
 		</div>
 
