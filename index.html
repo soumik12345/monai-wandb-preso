@@ -578,6 +578,105 @@
 						Why do we need to scale the loss during mixed precision training step?
 					</p>
 				</section>
+				<!-- Slide 19 -->
+				<section>
+					<section>
+						<p style="font-size: 150%;"><a href="#/18">
+							HyperParameter Optimization using Sweeps
+						</a></p>
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+							A [Weights & Biases Sweep](#/18/1) combines a strategy for exploring hyperparameter values
+							with the code that evaluates them.
+						</textarea>
+					</section>
+					<section>
+						<p data-id="code-title">
+							Sweep configuration using a simple Python dictionary
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|2-4|6-11|13-26|16-17|19-24|"><script type="text/template">
+							sweep_configuration = {
+								# Define Hyperparameter exploration strategy,
+								# in this case, it is Bayesian Optimization and Hyperband.
+								'method': 'bayes',
+								
+								# Define Hyperparameter optimization goal,
+								# in this case, it is to maximize the per-epoch dice score.
+								'metric': {
+									'goal': 'maximize', 
+									'name': 'epoch/dice_mean'
+								},
+								
+								# Define hyperparameter bounds to search
+								'parameters': {
+									
+									# Discrete Hyperparameter values
+									'init_filters': {'values': [8, 16, 32]},
+									
+									# Continuous distribution of Hyperparameter values
+									'dropout_prob': {'max': 0.5, 'min': 0.1},
+									'smooth_nr':  {'max': 1e-4, 'min': 1e-6},
+									'smooth_dr':  {'max': 1e-4, 'min': 1e-6},
+									'learning_rate':  {'max': 1e-3, 'min': 1e-6},
+									'weight_decay':  {'max': 1e-3, 'min': 1e-6},       
+								}
+							}
+						</script></code></pre>
+					</section>
+					<section>
+						<p data-id="code-title">
+							Executing the Sweep
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1-5|7-15|"><script type="text/template">
+							# Create a sweep
+							sweep_id = wandb.sweep(
+								sweep=sweep_configuration,
+								project='brain-tumor-segmentation'
+							)
+
+							# Execute the sweep using a sweep agent
+							wandb.agent(
+								sweep_id,
+								# the function for training and validation with the code
+								# instrumented with Weights & Biases logging
+								function=main,
+								# Maximum number of iterations for the sweep
+								count=20
+							)
+						</script></code></pre>
+					</section>
+					<section>
+						<iframe src="https://wandb.ai/geekyrakshit/brain-tumor-segmentation/reports/Hyperparameter-Optimization-using-Sweeps--Vmlldzo2NzgwOTcy" style="border:none;height:700px;width:100%"></iframe>
+					</section>
+				</section>
+				<!-- Slide 20 -->
+				<section>
+					<section>
+						<p style="font-size: 150%;"><a href="#/19">
+							🏋️ Training the Best Model
+						</a></p>
+					</section>
+					<section>
+						<p data-id="code-title">
+							Let's fetch the best set of hyperparameters from the sweep
+						</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers><script type="text/template">
+							api = wandb.Api()
+
+							sweep = api.sweep("<entity>/<project>/<sweep_id>")
+							runs = sorted(
+								sweep.runs, key=lambda run: run.summary.get("val_acc", 0), reverse=True
+							)
+							best_run = runs[0]
+
+							best_run_config = best_run.config
+						</script></code></pre>
+					</section>
+					<section>
+						<iframe src="https://wandb.ai/geekyrakshit/brain-tumor-segmentation/reports/Training-with-the-Best-Set-of-Hyperparameters--Vmlldzo2NzgxMjAx" style="border:none;height:700px;width:100%"></iframe>
+					</section>
+				</section>
 			</div>
 		</div>
 
