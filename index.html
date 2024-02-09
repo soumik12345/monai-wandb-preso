@@ -301,6 +301,25 @@
 						to automatically download the data of Medical Segmentation Decathlon challenge and generate items
 						for training, validation or test.
 					</textarea></section>
+					<section>
+						<p data-id="code-title">Defining the Transforms</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1,4-9|2,11-14|"><script type="text/template">
+							from monai.apps import DecathlonDataset
+							from monai.data import DataLoader
+
+							train_ds = DecathlonDataset(
+								root_dir=artifact_dir, task="Task01_BrainTumour",
+								transform=train_transform, section="training",
+								download=True, cache_rate=0.0,
+								num_workers=config.num_workers,
+							)
+
+							train_loader = DataLoader(
+								train_ds, batch_size=config.train_batch_size,
+								shuffle=True, num_workers=config.num_workers
+							)
+						</script></code></pre>
+					</section>
 				</section>
 			</div>
 		</div>
