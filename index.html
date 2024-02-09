@@ -8,16 +8,72 @@
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
+		<link rel="stylesheet" href="dist/theme/night.css">
 
 		<!-- Theme used for syntax highlighted code -->
 		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+		<style>
+			.circular_image {
+				width: 70%;
+				height: 70%;
+				border-radius: 50%;
+				overflow: hidden;
+				display:inline-block;
+				vertical-align:middle;
+			  }
+			  .circular_image img{
+				width:100%;
+			  }
+
+			  #left {
+				left:-8.33%;
+				text-align: left;
+				float: left;
+				width:50%;
+				z-index:-10;
+			  }
+			  
+			  #right {
+				left:31.25%;
+				top: 75px;
+				float: right;
+				text-align: right;
+				z-index:-10;
+				width:50%;
+			  }
+		</style>
 	</head>
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<!-- Slide 1 -->
+				<section data-markdown>
+					<textarea data-template>
+					  ## Brain Tumor Segmentation using MONAI and WandB
+
+					  Presented by [Soumik Rakshit](https://geekyrakshit.dev/)
+					</textarea>
+				</section>
+				<!-- Slide 2 -->
+				<section data-markdown>
+					<textarea data-template>
+						<div id="left">
+							<img class="circular_image" src="https://geekyrakshit.dev/assets/soumik_rakshit.png" alt="">
+						</div>
+						<div id="right">
+							<p style="text-align: left; font-size: 80%; padding-bottom: 5%;">$>whoami</p>
+							<p style="text-align: left; font-size: 50%; line-height: 175%;">
+								👋 Building tools for ML <a href="https://wandb.ai/site">@WandB</a>.<br>
+								👋 Google Developer Expert in ML (JAX).<br>
+								👋 Former ML Research @IBM and @Ignitarium.<br>
+								👋 I build MLOps pipelines for open-source repositories (Keras, 🤗 Diffusers, MonAI, etc.)<br>
+								👋 I am actively working on <a href="https://github.com/soumik12345/wandb-addons"></a>WandB-Addons</a>.<br>
+								👋 Playing 🎻 between work; MineCraft and Elden Ring after work.<br>
+								👋 More about myself at <a href="https://geekyrakshit.dev/">geekyrakshit.dev</a>
+							</p>
+						</div>
+					</textarea>
+				</section>
 			</div>
 		</div>
 
