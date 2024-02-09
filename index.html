@@ -302,7 +302,7 @@
 						for training, validation or test.
 					</textarea></section>
 					<section>
-						<p data-id="code-title">Defining the Transforms</p>
+						<p data-id="code-title">Defining the Dataloader</p>
 						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1,4-9|2,11-14|"><script type="text/template">
 							from monai.apps import DecathlonDataset
 							from monai.data import DataLoader
@@ -319,6 +319,45 @@
 								shuffle=True, num_workers=config.num_workers
 							)
 						</script></code></pre>
+					</section>
+				</section>
+				<!-- Slide 13 -->
+				<section>
+					<section>Step 3: Visualizing the Data</section>
+					<section data-markdown><textarea data-template>
+						We use the images and segmentation maps as
+						[`wandb.Image`](https://docs.wandb.ai/ref/python/data-types/image) which enables us to log the
+						semantic segmentation masks on our W&B dashboard and explore the data in an
+						interactive manner via the UI.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Visualizing the Data</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1|3-8|10-21|"><script type="text/template">
+							mask_data = np.array([[1, 2, 2, ... , 2, 2, 1], ...])
+
+							class_labels = {
+								0: "background",
+								1: "Tumor core",
+								2: "Whole tumor",
+								3: "Enhancing tumor"
+							}
+
+							mask_img = wandb.Image(
+								image, masks={
+									"predictions": {
+										"mask_data": mask_data,
+										"class_labels": class_labels
+									},
+									"ground_truth": {
+										...
+									},
+									...
+								}
+							)
+						</script></code></pre>
+					</section>
+					<section>
+						<iframe src="https://wandb.ai/geekyrakshit/brain-tumor-segmentation/reports/Brain-Tumor-Segmentation-Data--Vmlldzo2Nzc5OTQz" style="border:none;height:700px;width:100%"></iframe>
 					</section>
 				</section>
 			</div>
