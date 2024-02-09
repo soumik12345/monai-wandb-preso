@@ -162,6 +162,146 @@
 						</textarea>
 					</section>
 				</section>
+				<!-- Slide 8 -->
+				<section>
+					<section>
+						<p style="font-size: 150%;"><a href="https://medicaldecathlon.com/">
+							The Medical Decathlon Dataset
+						</a></p>
+					</section>
+					<section>
+						In this report, we will be focusing on training a deep neural network on the dataset for the
+						<a href="#/7/1">Brain Tumor Segmentation </a> task from the
+						<a href="https://medicaldecathlon.com/">Medical Segmentation Decathlon</a>.
+					</section>
+					<section>
+						<p class="fragment fade-in-then-out">The goal of this challenge is to produce segmentation labels of the different <strong>glioma</strong> sub regions</p>
+						<p class="fragment fade-in">Tumor core</p>
+						<p class="fragment fade-in">Whole tumor</p>
+						<p class="fragment fade-in">Enhancing tumor</p>
+					</section>
+				</section>
+				<!-- Slide 9 -->
+				<section>
+					<p style="font-size: 150%;">
+						💿 Loading and Exploring the Data
+					</p>
+				</section>
+				<!-- Slide 10 -->
+				<section>
+					<section>Step 1: Define the Transforms</section>
+					<section data-markdown><textarea data-template>
+						We define some transforms to be applied to our data after loading for the sake of pre-processing and batching.
+					</textarea></section>
+					<section data-markdown><textarea data-template>
+						We can do this easily using the [`monai.transforms`](https://docs.monai.io/en/stable/transforms.html) API
+						that provides a large collection of PyTorch-based transforms specific to medical imaging.
+					</textarea></section>
+					<section>
+						<p data-id="code-title">Defining the Transforms</p>
+						<pre data-id="code-animation"><code class="hljs python" data-trim data-line-numbers="|1,6-8|14-15|21-22|28-34|40-42|48-53|59-62|68-73|79-80"><script type="text/template">
+							from monai.transforms import *
+
+							train_transform = Compose(
+								[
+									
+									# Load tensors from the specified files.
+									# Load 4 Nifti images and stack them together.
+									LoadImaged(keys=["image", "label"]),
+
+									
+									
+									
+									
+									# Ensure channel-first ordering for images and labels.
+									EnsureChannelFirstd(keys="image"),
+									
+									
+									
+									
+									
+									# Convert the labels to BRATS classes.
+									ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+									
+									
+									
+									
+									
+									# Resample the input image into the specified
+									# pixel dimension.
+									Spacingd(
+										keys=["image", "label"],
+										pixdim=(1.0, 1.0, 1.0),
+										mode=("bilinear", "nearest"),
+									),
+
+
+
+
+
+									# Change the orientation of the input image into the specified
+									# based on spatial axcodes.
+									Orientationd(keys=["image", "label"], axcodes="RAS"),
+									
+									
+									
+									
+									
+									# Crop image with random size or specifically sized
+									# region-of-interest.
+									RandSpatialCropd(
+										keys=["image", "label"],
+										roi_size=[224, 224, 144], random_size=False
+									),
+
+
+
+
+
+									# Random flip images and labels across all the apatial axes
+									RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
+									RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
+									RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
+									
+									
+									
+									
+									
+									# Normalize and randomly scale inputs based on intensity.
+									NormalizeIntensityd(
+											keys="image", nonzero=True, channel_wise=True
+									),
+									RandScaleIntensityd(keys="image", factors=0.1, prob=1.0),
+									RandShiftIntensityd(keys="image", offsets=0.1, prob=1.0),
+									
+									
+									
+									
+									
+									# Ensure the input data to be a PyTorch Tensor or numpy array.
+									EnsureTyped(keys=["image", "label"]),
+								]
+							)
+						</script></code></pre>
+					</section>
+				</section>
+				<!-- Slide 11 -->
+				<section>
+					<p style="font-size: 150%;">🐝 <a href="#/10">Quiz Time...</a><br></p>
+					<p class="fragment fade-in">
+						What would be the difference between the transforms applied to the
+						training data and the validation data?
+					</p>
+				</section>
+				<!-- Slide 12 -->
+				<section>
+					<section>Step 2: Create the Dataloader</section>
+					<section data-markdown><textarea data-template>
+						We use [`monai.apps.DecathlonDataset`](https://docs.monai.io/en/stable/apps.html#monai.apps.DecathlonDataset)
+						to automatically download the data of Medical Segmentation Decathlon challenge and generate items
+						for training, validation or test.
+					</textarea></section>
+				</section>
 			</div>
 		</div>
 
